@@ -1,0 +1,114 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <time.h>
+
+#define WIDTH 20
+#define HEIGHT 20
+
+// 定義方向
+#define UP 0
+#define DOWN 1
+#define LEFT 2
+#define RIGHT 3
+
+int snakeX[100], snakeY[100];
+int snakeLength = 1;
+int foodX, foodY;
+int direction = RIGHT;
+int gameOver = 0;
+
+// 初始化遊戲
+void initGame() {
+    snakeX[0] = WIDTH / 2;
+    snakeY[0] = HEIGHT / 2;
+    srand(time(NULL));
+    foodX = rand() % (WIDTH - 2) + 1;
+    foodY = rand() % (HEIGHT - 2) + 1;
+}
+
+// 顯示遊戲畫面
+void display() {
+    system("cls");
+    for (int i = 0; i < HEIGHT; i++) {
+        for (int j = 0; j < WIDTH; j++) {
+            if (i == 0 || i == HEIGHT - 1 || j == 0 || j == WIDTH - 1) {
+                printf("#"); // 邊界
+            } else if (i == foodY && j == foodX) {
+                printf("@"); // 食物
+            } else {
+                int isSnake = 0;
+                for (int k = 0; k < snakeLength; k++) {
+                    if (snakeX[k] == j && snakeY[k] == i) {
+                        printf("O"); // 蛇身
+                        isSnake = 1;
+                        break;
+                    }
+                }
+                if (!isSnake) {
+                    printf(" ");
+                }
+            }
+        }
+        printf("\n");
+    }
+    printf("Score: %d\n", (snakeLength - 1) * 10);
+}
+
+// 移動蛇
+void moveSnake() {
+    for (int i = snakeLength - 1; i > 0; i--) {
+        snakeX[i] = snakeX[i - 1];
+        snakeY[i] = snakeY[i - 1];
+    }
+
+    switch (direction) {
+        case UP: snakeY[0]--; break;
+        case DOWN: snakeY[0]++; break;
+        case LEFT: snakeX[0]--; break;
+        case RIGHT: snakeX[0]++; break;
+    }
+
+    // 檢查是否撞到邊界或自己
+    if (snakeX[0] == 0 || snakeX[0] == WIDTH - 1 || snakeY[0] == 0 || snakeY[0] == HEIGHT - 1) {
+        gameOver = 1;
+    }
+    for (int i = 1; i < snakeLength; i++) {
+        if (snakeX[0] == snakeX[i] && snakeY[0] == snakeY[i]) {
+            gameOver = 1;
+        }
+    }
+
+    // 檢查是否吃到食物
+    if (snakeX[0] == foodX && snakeY[0] == foodY) {
+        snakeLength++;
+        foodX = rand() % (WIDTH - 2) + 1;
+        foodY = rand() % (HEIGHT - 2) + 1;
+    }
+}
+
+// 處理用戶輸入
+void handleInput() {
+    if (_kbhit()) {
+        switch (_getch()) {
+            case 'w': if (direction != DOWN) direction = UP; break;
+            case 's': if (direction != UP) direction = DOWN; break;
+            case 'a': if (direction != RIGHT) direction = LEFT; break;
+            case 'd': if (direction != LEFT) direction = RIGHT; break;
+        }
+    }
+}
+
+int main() {
+    initGame();
+
+    while (!gameOver) {
+        display();
+        handleInput();
+        moveSnake();
+        _sleep(100); // 控制遊戲速度
+    }
+
+    printf("Game Over! Final Score: %d\n", (snakeLength - 1) * 10);
+    return 0;
+}
